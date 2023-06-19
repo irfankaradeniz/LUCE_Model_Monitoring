@@ -5,6 +5,51 @@ from sklearn.preprocessing import MinMaxScaler
 import gower
 import logging
 
+def generate_metadata(df: pd.DataFrame, metadata: dict) -> dict:
+    """
+    Generate metadata for a given DataFrame.
+    
+    Parameters
+    ----------
+        df (pd.DataFrame): Input DataFrame with mixed data types.
+        metadata (dict): A dictionary containing the base metadata schema.
+        
+    Returns
+    -------
+        dict: Updated metadata dictionary with dataset-specific information.
+    """
+    
+    logging.info("Generating metadata...")
+    num_samples, num_features = df.shape
+    metadata["dataset_specific_metadata"]["num_samples"] = num_samples
+    features = []
+
+    for column in df.columns:
+        feature = {
+            "feature_name": column,
+            "feature_type": "categorical" if df[column].dtype.name == 'category' or df[column].dtype.name == 'object' else "continuous",
+            "data_type": df[column].dtype.name,
+            "feature_description": f"Description of {column}",
+            "missing_values_proportion": df[column].isna().mean()
+        }
+
+        if feature["feature_type"] == "continuous":
+            feature["mean"] = df[column].mean()
+            feature["median"] = df[column].median()
+            feature["std_dev"] = df[column].std()
+            feature["skewness"] = df[column].skew()
+            feature["kurtosis"] = df[column].kurt()
+        else:
+            feature["categories"] = df[column].unique().tolist()
+            feature["category_counts"] = df[column].value_counts().to_dict()
+
+        features.append(feature)
+
+    metadata["dataset_specific_metadata"]["features"] = features
+    logging.info("Metadata generated.")
+
+    return metadata
+
 def gower_distance_matrix(df: pd.DataFrame) -> np.ndarray:
     """
     Compute the Gower distance matrix for the given DataFrame.
