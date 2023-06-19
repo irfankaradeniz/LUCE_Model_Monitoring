@@ -93,3 +93,4 @@ def compare_datasets(original: pd.DataFrame, synthetic: pd.DataFrame):
     
     logging.info("Original dataset statistics:\n%s", original_desc)
     logging.info("\nSynthetic dataset statistics:\n%s", synthetic_desc)
+
