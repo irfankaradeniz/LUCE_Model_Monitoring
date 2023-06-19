@@ -14,25 +14,34 @@ def load_dataset(filepath: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The loaded dataset as a pandas DataFrame.
     """
-    logging.info('Loading dataset from %s', filepath)
+    logging.info("Loading dataset from %s", filepath)
     df = pd.read_csv(filepath)
-    logging.info('Dataset loaded successfully')
+    logging.info("Dataset loaded successfully")
     return df
 
 
-def generate_synthetic_datasets(df: pd.DataFrame, target_variable: str, n: int = 10) -> List[pd.DataFrame]:
+def generate_synthetic_datasets(
+    df: pd.DataFrame, target_variable: str, n: int = 10
+) -> List[pd.DataFrame]:
     """
-    Generate a list of synthetic datasets with the same number of samples and features as the input dataset.
+    Generate synthetic datasets using SMOTENC for balancing classes and adding Gaussian noise to continuous features.
 
-    Args:
-        df (pd.DataFrame): The input dataset.
-        target_variable (str): The name of the target variable column in the synthetic datasets.
-        n (int, optional): The number of synthetic datasets to generate. Defaults to 10.
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The original dataset from which synthetic datasets are to be generated.
+    target_variable : str
+        The name of the target variable column in the DataFrame.
+    n : int, optional
+        The number of synthetic datasets to generate, by default 10.
 
-    Returns:
-        list: A list of synthetic datasets as pandas DataFrames.
+    Returns
+    -------
+    List[pd.DataFrame]
+        A list containing the generated synthetic datasets.
     """
-    logging.info('Generating synthetic datasets')
+    
+    logging.info("Generating synthetic datasets")
     synthetic_datasets = []
     X = df.drop(target_variable, axis=1)
     y = df[target_variable]
@@ -43,31 +52,44 @@ def generate_synthetic_datasets(df: pd.DataFrame, target_variable: str, n: int =
     # Get the continuous features columns (where the mask is False)
     continuous_features_columns = X.columns[~categorical_features_mask]
 
+    # Calculate the standard deviation of each continuous feature
+    continuous_features_std = X[continuous_features_columns].std()
+
     for _ in range(n):
-        smote_nc = SMOTENC(categorical_features=categorical_features_mask.tolist(), random_state=np.random.randint(0, 100))
+        smote_nc = SMOTENC(
+            categorical_features=categorical_features_mask.tolist(),
+            random_state=np.random.randint(0, 100),
+        )
         X_synthetic, y_synthetic = smote_nc.fit_resample(X, y)
 
-        # Add Gaussian noise only to the continuous features
-        X_synthetic[continuous_features_columns] += np.random.normal(0, 0.01, size=X_synthetic[continuous_features_columns].shape)
-        
+        # Add Gaussian noise to the continuous features, scaled by their standard deviation
+        for feature in continuous_features_columns:
+            X_synthetic[feature] += np.random.normal(
+                0,
+                0.01 * continuous_features_std[feature],
+                size=X_synthetic[feature].shape,
+            )
+
         synthetic_df = pd.concat([X_synthetic, y_synthetic], axis=1)
         synthetic_datasets.append(synthetic_df)
-    logging.info('Synthetic datasets generated successfully')
+    logging.info("Synthetic datasets generated successfully")
     return synthetic_datasets
 
-
 def compare_datasets(original: pd.DataFrame, synthetic: pd.DataFrame):
+    """
+    Compare an original dataset with a synthetic dataset by logging descriptive statistics of both datasets.
+
+    Parameters
+    ----------
+    original : pd.DataFrame
+        The original dataset.
+    synthetic : pd.DataFrame
+        The synthetic dataset.
+    """
+    
     logging.info("Comparing datasets...")
     original_desc = original.describe(include='all')
     synthetic_desc = synthetic.describe(include='all')
     
     logging.info("Original dataset statistics:\n%s", original_desc)
     logging.info("\nSynthetic dataset statistics:\n%s", synthetic_desc)
-    
-def compare_correlations(original: pd.DataFrame, synthetic: pd.DataFrame):
-    logging.info("Comparing correlations...")
-    original_corr = original.corr()
-    synthetic_corr = synthetic.corr()
-    
-    logging.info("Original dataset correlation matrix:\n%s", original_corr)
-    logging.info("\nSynthetic dataset correlation matrix:\n%s", synthetic_corr)
