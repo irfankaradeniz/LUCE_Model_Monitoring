@@ -2,12 +2,8 @@ import pandas as pd
 from sklearn.metrics import (
     accuracy_score, recall_score, f1_score, precision_score, roc_auc_score, confusion_matrix
 )
-import matplotlib.pyplot as plt
-from typing import List
 import logging
-
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score, roc_auc_score, confusion_matrix
-
 from sklearn.model_selection import train_test_split
 
 def train_test_split_with_encoding(
@@ -170,7 +166,21 @@ def validate_model(
     }
 
 def train_evaluate_and_validate_models(classifiers, kfold, X_train, y_train, most_similar_dataset, target_variable):
-    """Trains, evaluates, and validates classifiers using k-fold cross-validation."""
+    """
+    Trains, evaluates, and validates a list of classifiers using k-fold cross-validation.
+
+    Parameters:
+    classifiers (list): A list of dictionaries, each containing 'name' of the classifier and the 'clf' object itself.
+    kfold (KFold): The k-fold cross validation splitting strategy.
+    X_train (DataFrame): The training data.
+    y_train (Series or array-like): The target variable for the training data.
+    most_similar_dataset (DataFrame): The most similar dataset, used for model validation.
+    target_variable (str): The name of the target variable column.
+
+    This function does not return any value. Its purpose is to train the classifiers, 
+    log the performance metrics for each model, and validate the model with the most similar dataset.
+    The function uses logging to output the results of each step.
+    """
     for classifier_info in classifiers:
         logging.info(f"Testing {classifier_info['name']}")
         performance_metrics = train_and_evaluate_model_kfold(
@@ -182,3 +192,28 @@ def train_evaluate_and_validate_models(classifiers, kfold, X_train, y_train, mos
         )
         logging.info(f"Validation results: {validation_results}")
         
+
+def get_performance_metrics_on_synthetic_datasets(synthetic_datasets, classifiers, target_variable, test_size, random_state):
+    """
+    Trains and evaluates models on each synthetic dataset and stores the performance metrics.
+
+    Args:
+    synthetic_datasets (list): List of synthetic datasets.
+    classifiers (list): List of classifiers (dictionary containing 'name' and 'clf' (the classifier object)).
+    target_variable (str): Target variable for the model.
+    test_size (float): Proportion of the dataset to include in the test split.
+    random_state (int): The seed used by the random number generator.
+
+    Returns:
+    performance_metrics_list (list): List of dictionaries, each containing the performance metrics for a model.
+    """
+    performance_metrics_list = []
+    for synthetic_dataset in synthetic_datasets:
+        X_train, X_test, y_train, y_test = train_test_split_with_encoding(synthetic_dataset, target_variable, test_size=test_size, random_state=random_state)
+        for classifier_info in classifiers:
+            logging.info(f"Testing {classifier_info['name']} on synthetic dataset")
+            accuracy, recall, f1, precision, roc_auc, conf_matrix = train_and_evaluate_model_kfold(X_train, y_train, X_test, y_test, classifier_info["clf"])
+            metrics = {"accuracy": accuracy, "recall": recall, "f1": f1, "precision": precision, "roc_auc": roc_auc, "conf_matrix": conf_matrix}
+            performance_metrics_list.append(metrics)
+    return performance_metrics_list
+
