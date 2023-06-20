@@ -22,8 +22,6 @@ def visualize_gower_similarity(
     """
     
     logging.info("Starting visualization of Gower's similarity scores...")
-    print(type(loaded_dataset))
-    print(type(synthetic_datasets))
 
     # Reshape gower_similarity_scores to a 2D array
     gower_similarity_scores = gower_similarity_scores.reshape(-1, 1)

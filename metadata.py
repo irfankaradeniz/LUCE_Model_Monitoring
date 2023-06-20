@@ -116,7 +116,6 @@ def calculate_gower_similarity(metadata1: dict, metadata_list: list) -> np.ndarr
 
         gower_distance = gower_distance_matrix(df)
         gower_similarity = 1 - gower_distance[: len(df1), len(df1) :]
-        # print(gower_similarity)
         gower_similarity_scores.append(np.median(gower_similarity))
         logging.info("Gower similarity calculated.")
 

@@ -110,7 +110,7 @@ def train_and_evaluate_model_kfold(X_train, y_train, X_test, y_test, classifier)
         roc_auc,
     )
 
-    return accuracy, recall, f1, precision, roc_auc
+    return accuracy, recall, f1, precision, roc_auc, conf_matrix
 
 
  
@@ -146,6 +146,7 @@ def validate_model(
         f1,
         precision,
         roc_auc,
+        conf_matrix
     ) = train_and_evaluate_model_kfold(X_train, y_train, X_test, y_test, classifier)
 
     logging.info(
@@ -164,33 +165,6 @@ def validate_model(
         "precision": precision,
         "roc_auc": roc_auc,
     }
-
-def train_evaluate_and_validate_models(classifiers, kfold, X_train, y_train, most_similar_dataset, target_variable):
-    """
-    Trains, evaluates, and validates a list of classifiers using k-fold cross-validation.
-
-    Parameters:
-    classifiers (list): A list of dictionaries, each containing 'name' of the classifier and the 'clf' object itself.
-    kfold (KFold): The k-fold cross validation splitting strategy.
-    X_train (DataFrame): The training data.
-    y_train (Series or array-like): The target variable for the training data.
-    most_similar_dataset (DataFrame): The most similar dataset, used for model validation.
-    target_variable (str): The name of the target variable column.
-
-    This function does not return any value. Its purpose is to train the classifiers, 
-    log the performance metrics for each model, and validate the model with the most similar dataset.
-    The function uses logging to output the results of each step.
-    """
-    for classifier_info in classifiers:
-        logging.info(f"Testing {classifier_info['name']}")
-        performance_metrics = train_and_evaluate_model_kfold(
-            X_train, y_train, classifier_info["clf"], kfold
-        )
-        logging.info(f"Performance metrics for {classifier_info['name']}: {performance_metrics}")
-        validation_results = validate_model(
-            most_similar_dataset, target_variable, classifier_info["clf"]
-        )
-        logging.info(f"Validation results: {validation_results}")
         
 
 def get_performance_metrics_on_synthetic_datasets(synthetic_datasets, classifiers, target_variable, test_size, random_state):

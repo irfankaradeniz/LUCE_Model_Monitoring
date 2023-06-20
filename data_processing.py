@@ -21,8 +21,7 @@ def load_dataset(filepath: str) -> pd.DataFrame:
 
 
 def generate_synthetic_datasets(
-    df: pd.DataFrame, target_variable: str, n: int = 10
-) -> List[pd.DataFrame]:
+    df: pd.DataFrame, target_variable: str, n: int) -> List[pd.DataFrame]:
     """
     Generate synthetic datasets using SMOTENC for balancing classes and adding Gaussian noise to continuous features.
 
@@ -54,14 +53,16 @@ def generate_synthetic_datasets(
 
     # Calculate the standard deviation of each continuous feature
     continuous_features_std = X[continuous_features_columns].std()
+    
 
     for _ in range(n):
         smote_nc = SMOTENC(
             categorical_features=categorical_features_mask.tolist(),
             random_state=np.random.randint(0, 100),
         )
-        X_synthetic, y_synthetic = smote_nc.fit_resample(X, y)
 
+        X_synthetic, y_synthetic = smote_nc.fit_resample(X, y)
+        
         # Add Gaussian noise to the continuous features, scaled by their standard deviation
         for feature in continuous_features_columns:
             X_synthetic[feature] += np.random.normal(

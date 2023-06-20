@@ -7,12 +7,12 @@ from sklearn.ensemble import RandomForestClassifier
 
 from data_processing import load_dataset, generate_synthetic_datasets
 from metadata import generate_metadata, calculate_gower_similarity
-from model_training import train_test_split_with_encoding, get_performance_metrics_on_synthetic_datasets, train_evaluate_and_validate_models
+from model_training import train_test_split_with_encoding, get_performance_metrics_on_synthetic_datasets, train_and_evaluate_model_kfold, validate_model
 from visualisations import visualize_gower_similarity, plot_performance_metrics
 
 # Constants
-DATASET_PATH = "/data/heart.csv"
-METADATA_SCHEMA_PATH = "/metadata/metadata_schema.json"
+DATASET_PATH = "data/heart.csv"
+METADATA_SCHEMA_PATH = "metadata/metadata_schema.json"
 TARGET_VARIABLE = "HeartDisease"
 TEST_SIZE = 0.2
 RANDOM_STATE = 42
@@ -27,8 +27,13 @@ def main():
     """
     Main function to execute the data simulation, model training, evaluation, and validation process.
     """
+    try:
     # Load the dataset
-    loaded_dataset = load_dataset(DATASET_PATH)
+        loaded_dataset = load_dataset(DATASET_PATH)
+    except Exception as e:
+        print("An error occurred while loading the dataset:")
+        print(str(e))
+
 
     # Generate metadata for the loaded dataset
     metadata_schema = pd.read_json(METADATA_SCHEMA_PATH)
@@ -52,8 +57,56 @@ def main():
     kfold = KFold(n_splits=N_SPLITS, random_state=RANDOM_STATE, shuffle=True)
 
     # Train, evaluate, and validate models
-    training_data, test_data, training_targets, test_targets = train_test_split_with_encoding(loaded_dataset, TARGET_VARIABLE, test_size=TEST_SIZE, random_state=RANDOM_STATE)
-    train_evaluate_and_validate_models(classifiers, kfold, training_data, training_targets, most_similar_dataset, TARGET_VARIABLE)
+    X_train, X_test, y_train, y_test = train_test_split_with_encoding(loaded_dataset, TARGET_VARIABLE, test_size=TEST_SIZE, random_state=RANDOM_STATE)
+    
+    
+    for classifier_info in classifiers:
+        logging.info(f"Testing {classifier_info['name']}")
+
+        accuracies = []
+        recalls = []
+        f1_scores = []
+        precisions = []
+        roc_aucs = []
+
+        for train_idx, test_idx in kfold.split(X_train, y_train):
+            X_train_fold, X_test_fold = X_train.iloc[train_idx], X_train.iloc[test_idx]
+            y_train_fold, y_test_fold = y_train.iloc[train_idx], y_train.iloc[test_idx]
+
+            (
+                accuracy,
+                recall,
+                f1,
+                precision,
+                roc_auc,
+                conf_matrix,
+            ) = train_and_evaluate_model_kfold(
+                X_train_fold,
+                y_train_fold,
+                X_test_fold,
+                y_test_fold,
+                classifier_info["clf"],
+            )
+
+            accuracies.append(accuracy)
+            recalls.append(recall)
+            f1_scores.append(f1)
+            precisions.append(precision)
+            roc_aucs.append(roc_auc)
+
+        # Calculate the average performance metrics
+        avg_accuracy = np.mean(accuracies)
+        avg_recall = np.mean(recalls)
+        avg_f1 = np.mean(f1_scores)
+        avg_precision = np.mean(precisions)
+        avg_roc_auc = np.mean(roc_aucs)
+
+        # logging.info(f"{classifier_info['name']} - Trained and evaluated model using k-fold cross-validation (accuracy={avg_accuracy}, recall={avg_recall}, f1={avg_f1}, precision={avg_precision}, roc_auc={avg_roc_auc})")
+
+        validation_results = validate_model(
+            most_similar_dataset, TARGET_VARIABLE, classifier_info["clf"]
+        )
+    
 
     # Train and evaluate the model on each synthetic dataset and store the metrics
     performance_metrics_list = get_performance_metrics_on_synthetic_datasets(synthetic_datasets, classifiers, TARGET_VARIABLE, TEST_SIZE, RANDOM_STATE)
