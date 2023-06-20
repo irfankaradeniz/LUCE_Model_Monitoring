@@ -3,6 +3,10 @@ from typing import List
 import numpy as np
 from imblearn.over_sampling import SMOTENC
 import logging
+import os
+
+# Define constants
+GAUSSIAN_NOISE_SCALE = 0.01
 
 def load_dataset(filepath: str) -> pd.DataFrame:
     """
@@ -14,14 +18,23 @@ def load_dataset(filepath: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: The loaded dataset as a pandas DataFrame.
     """
+    if not os.path.exists(filepath):
+        logging.error("File %s does not exist", filepath)
+        raise FileNotFoundError(f"File {filepath} does not exist")
+
     logging.info("Loading dataset from %s", filepath)
-    df = pd.read_csv(filepath)
+    try:
+        df = pd.read_csv(filepath)
+    except Exception as e:
+        logging.error("Failed to load dataset: %s", str(e))
+        raise e
+
     logging.info("Dataset loaded successfully")
     return df
 
 
 def generate_synthetic_datasets(
-    df: pd.DataFrame, target_variable: str, n: int) -> List[pd.DataFrame]:
+    df: pd.DataFrame, target_variable: str, num_datasets: int = 10) -> List[pd.DataFrame]:
     """
     Generate synthetic datasets using SMOTENC for balancing classes and adding Gaussian noise to continuous features.
 
@@ -31,7 +44,7 @@ def generate_synthetic_datasets(
         The original dataset from which synthetic datasets are to be generated.
     target_variable : str
         The name of the target variable column in the DataFrame.
-    n : int, optional
+    num_datasets : int, optional
         The number of synthetic datasets to generate, by default 10.
 
     Returns
@@ -40,6 +53,10 @@ def generate_synthetic_datasets(
         A list containing the generated synthetic datasets.
     """
     
+    if target_variable not in df.columns:
+        logging.error("Target variable %s not found in DataFrame", target_variable)
+        raise ValueError(f"Target variable {target_variable} not found in DataFrame")
+
     logging.info("Generating synthetic datasets")
     synthetic_datasets = []
     X = df.drop(target_variable, axis=1)
@@ -55,7 +72,7 @@ def generate_synthetic_datasets(
     continuous_features_std = X[continuous_features_columns].std()
     
 
-    for _ in range(n):
+    for _ in range(num_datasets):
         smote_nc = SMOTENC(
             categorical_features=categorical_features_mask.tolist(),
             random_state=np.random.randint(0, 100),
@@ -67,7 +84,7 @@ def generate_synthetic_datasets(
         for feature in continuous_features_columns:
             X_synthetic[feature] += np.random.normal(
                 0,
-                0.01 * continuous_features_std[feature],
+                GAUSSIAN_NOISE_SCALE * continuous_features_std[feature],
                 size=X_synthetic[feature].shape,
             )
 

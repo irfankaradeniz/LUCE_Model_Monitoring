@@ -1,7 +1,4 @@
 import pandas as pd
-from sklearn.metrics import (
-    accuracy_score, recall_score, f1_score, precision_score, roc_auc_score, confusion_matrix
-)
 import logging
 from sklearn.metrics import accuracy_score, recall_score, f1_score, precision_score, roc_auc_score, confusion_matrix
 from sklearn.model_selection import train_test_split

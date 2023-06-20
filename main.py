@@ -8,7 +8,7 @@ from sklearn.ensemble import RandomForestClassifier
 from data_processing import load_dataset, generate_synthetic_datasets
 from metadata import generate_metadata, calculate_gower_similarity
 from model_training import train_test_split_with_encoding, get_performance_metrics_on_synthetic_datasets, train_and_evaluate_model_kfold, validate_model
-from visualisations import visualize_gower_similarity, plot_performance_metrics
+from visualisations import visualize_gower_similarity, plot_performance_metrics, plot_kfold
 
 # Constants
 DATASET_PATH = "data/heart.csv"
@@ -27,20 +27,15 @@ def main():
     """
     Main function to execute the data simulation, model training, evaluation, and validation process.
     """
-    try:
     # Load the dataset
-        loaded_dataset = load_dataset(DATASET_PATH)
-    except Exception as e:
-        print("An error occurred while loading the dataset:")
-        print(str(e))
-
+    loaded_dataset = load_dataset(DATASET_PATH)
 
     # Generate metadata for the loaded dataset
     metadata_schema = pd.read_json(METADATA_SCHEMA_PATH)
     loaded_dataset_metadata = generate_metadata(loaded_dataset, metadata_schema)
 
     # Generate synthetic datasets
-    synthetic_datasets = generate_synthetic_datasets(loaded_dataset, TARGET_VARIABLE, n=N_SYNTHETIC_DATASETS)
+    synthetic_datasets = generate_synthetic_datasets(loaded_dataset, TARGET_VARIABLE, num_datasets=N_SYNTHETIC_DATASETS)
 
     # Generate metadata for synthetic datasets
     synthetic_datasets_metadata_list = [generate_metadata(df, metadata_schema.copy()) for df in synthetic_datasets]
@@ -107,6 +102,7 @@ def main():
             most_similar_dataset, TARGET_VARIABLE, classifier_info["clf"]
         )
     
+    plot_kfold(accuracies, recalls, f1_scores, precisions, roc_aucs, classifiers)
 
     # Train and evaluate the model on each synthetic dataset and store the metrics
     performance_metrics_list = get_performance_metrics_on_synthetic_datasets(synthetic_datasets, classifiers, TARGET_VARIABLE, TEST_SIZE, RANDOM_STATE)
@@ -115,9 +111,8 @@ def main():
     metric_names = ["accuracy", "recall", "f1", "precision", "roc_auc"]
     plot_performance_metrics(performance_metrics_list, metric_names)
 
-    # # Step 10
     # # Connect to Ethereum network
-    # web3 = Web3(Web3.HTTPProvider('http://localhost:8545'))  # replace with your provider
+    # web3 = Web3(Web3.HTTPProvider('http://localhost:8545'))  # replace with my provider
 
     # # Assuming having the contract ABI (interface) and contract addresses
     # model_evaluation_abi = ''  # fill with ModelEvaluation contract ABI
@@ -139,21 +134,21 @@ def main():
 
     #     # Step 10: Add dataset, add model result, validate and mint NFT
     # def validate_with_smart_contract(dataset, model_result):
-    #     # replace 'your_account' with your actual account
-    #     your_account = ''  # your ethereum account
+    #     # replace 'my_account' with my actual account
+    #     my_account = ''  # my ethereum account
 
     #     # Call addDataset function
-    #     model_evaluation_contract.functions.addDataset(dataset['datasetId'], dataset['metadata']).transact({'from': your_account})
+    #     model_evaluation_contract.functions.addDataset(dataset['datasetId'], dataset['metadata']).transact({'from': my_account})
 
     #     # Call addModelResult function
-    #     model_evaluation_contract.functions.addModelResult(model_result['modelId'], model_result['accuracy'], model_result['recall'], model_result['f1Score'], model_result['metadata']).transact({'from': your_account})
+    #     model_evaluation_contract.functions.addModelResult(model_result['modelId'], model_result['accuracy'], model_result['recall'], model_result['f1Score'], model_result['metadata']).transact({'from': my_account})
 
     #     # Call validateModel function
     #     is_valid = model_evaluation_contract.functions.validateModel(model_result['modelId'], dataset['datasetId']).call()
 
     #     # If valid, mint NFT
     #     if is_valid:
-    #         model_result_nft_contract.functions.mintModelResult(your_account, model_result['modelId']).transact({'from': your_account})
+    #         model_result_nft_contract.functions.mintModelResult(my_account, model_result['modelId']).transact({'from': my_account})
 
     # validate_with_smart_contract(most_similar_dataset, validation_results)
     # logging.info("Simulation completed")

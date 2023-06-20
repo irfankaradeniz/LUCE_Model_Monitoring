@@ -1,27 +1,34 @@
 import pandas as pd
 import numpy as np
-import gower
 from sklearn.preprocessing import MinMaxScaler
 import gower
 import logging
 
-def generate_metadata(df: pd.DataFrame, metadata: dict) -> dict:
+def generate_metadata(df: pd.DataFrame, base_metadata: dict) -> dict:
     """
     Generate metadata for a given DataFrame.
     
     Parameters
     ----------
         df (pd.DataFrame): Input DataFrame with mixed data types.
-        metadata (dict): A dictionary containing the base metadata schema.
+        base_metadata (dict): A dictionary containing the base metadata schema.
         
     Returns
     -------
         dict: Updated metadata dictionary with dataset-specific information.
     """
     
+    if df.empty:
+        logging.error("Input DataFrame is empty")
+        raise ValueError("Input DataFrame is empty")
+
+    if "dataset_specific_metadata" not in base_metadata or "features" not in base_metadata["dataset_specific_metadata"]:
+        logging.error("Base metadata does not have the expected structure")
+        raise ValueError("Base metadata does not have the expected structure")
+
     logging.info("Generating metadata...")
     num_samples, num_features = df.shape
-    metadata["dataset_specific_metadata"]["num_samples"] = num_samples
+    base_metadata["dataset_specific_metadata"]["num_samples"] = num_samples
     features = []
 
     for column in df.columns:
@@ -45,10 +52,10 @@ def generate_metadata(df: pd.DataFrame, metadata: dict) -> dict:
 
         features.append(feature)
 
-    metadata["dataset_specific_metadata"]["features"] = features
+    base_metadata["dataset_specific_metadata"]["features"] = features
     logging.info("Metadata generated.")
 
-    return metadata
+    return base_metadata
 
 def gower_distance_matrix(df: pd.DataFrame) -> np.ndarray:
     """
@@ -71,15 +78,15 @@ def gower_distance_matrix(df: pd.DataFrame) -> np.ndarray:
     return gower_distance
 
 
-def calculate_gower_similarity(metadata1: dict, metadata_list: list) -> np.ndarray:
+def calculate_gower_similarity(base_metadata: dict, metadata_list: list) -> np.ndarray:
     """
     Calculate Gower similarity between a dataset (represented by its metadata) and a list of other datasets
     (also represented by their metadata).
 
     Parameters
     ----------
-    metadata1 : dict
-        The metadata of the first dataset.
+    base_metadata : dict
+        The metadata of the base dataset.
     metadata_list : list
         The list of metadata for other datasets.
 
@@ -89,12 +96,20 @@ def calculate_gower_similarity(metadata1: dict, metadata_list: list) -> np.ndarr
         An array of Gower similarity scores.
     """
     
+    if "dataset_specific_metadata" not in base_metadata or "features" not in base_metadata["dataset_specific_metadata"]:
+        logging.error("Base metadata does not have the expected structure")
+        raise ValueError("Base metadata does not have the expected structure")
+
     logging.info("Calculating Gower similarity...")
-    features1 = metadata1["dataset_specific_metadata"]["features"]
+    features1 = base_metadata["dataset_specific_metadata"]["features"]
     df1 = pd.DataFrame(features1)
     gower_similarity_scores = []
 
     for metadata2 in metadata_list:
+        if "dataset_specific_metadata" not in metadata2 or "features" not in metadata2["dataset_specific_metadata"]:
+            logging.error("Metadata does not have the expected structure")
+            raise ValueError("Metadata does not have the expected structure")
+
         features2 = metadata2["dataset_specific_metadata"]["features"]
         df2 = pd.DataFrame(features2)
 

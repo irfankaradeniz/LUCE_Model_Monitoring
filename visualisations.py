@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
 import logging
 from typing import List
@@ -77,3 +78,39 @@ def plot_performance_metrics(
         plt.xticks(range(n_datasets))
         plt.grid(True)
         plt.show()
+        
+        
+def plot_kfold(accuracies, recalls, f1_scores, precisions, roc_aucs, classifiers):
+    # Get the classifier name from the classifiers dictionary
+    classifier_name = classifiers[0]['name']
+
+    # Create a dictionary to store the performance metrics for each fold
+    metrics = {
+        'Accuracy': accuracies,
+        'Recall': recalls,
+        'F1 Score': f1_scores,
+        'Precision': precisions,
+        'ROC AUC': roc_aucs
+    }
+
+    # Calculate the average performance metrics
+    avg_metrics = {metric_name: np.mean(metric_values) for metric_name, metric_values in metrics.items()}
+
+    # Define colors for the bars
+    colors = ['blue', 'orange', 'green', 'red', 'purple']
+
+    # Plot the performance metrics for each fold
+    plt.figure(figsize=(10, 6))
+    bars = plt.bar(avg_metrics.keys(), avg_metrics.values(), color=colors)
+    plt.xlabel('Performance Metric')
+    plt.ylabel('Average Score')
+    plt.title(f'Average Performance Metrics - {classifier_name}')
+    plt.xticks(rotation=45)
+
+    # Add numbers on top of the bars
+    for bar in bars:
+        yval = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width() / 2, yval, round(yval, 2), ha='center', va='bottom')
+
+    plt.show()
+
