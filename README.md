@@ -7,6 +7,7 @@ This project simulates generating metadata and synthetic datasets based on an or
 - [Installation](#installation)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
+- [Smart Contracts](#smart-contracts)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -39,6 +40,16 @@ The project is organized into several Python scripts, each responsible for a dif
 - `model_training.py`: Contains functions for splitting a dataset into training and test sets, training and evaluating models, and validating models on a synthetic dataset.
 - `visualisations.py`: Contains functions for visualizing Gower's similarity and the performance metrics of the models.
 - `main.py`: The main script that ties everything together. It loads the original dataset, generates synthetic datasets, trains and evaluates models on the synthetic datasets, and validates the models on the most similar synthetic dataset.
+
+## Smart Contracts
+
+The project includes two Ethereum smart contracts:
+
+- `ModelResultNFT`: This contract mints NFTs based on model results. Each NFT represents a model result and includes the accuracy, recall, F1 score, and metadata of the model.
+
+- `ModelEvaluation`: This contract evaluates models based on their performance. It maintains a mapping of model results and a set of performance thresholds. A model is considered valid if its performance meets or exceeds the thresholds.
+
+The smart contracts are located in the `contracts` folder and can be tested using the Remix IDE.
 
 ## Contributing
 
