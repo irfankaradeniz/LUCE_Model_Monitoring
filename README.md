@@ -7,6 +7,8 @@ This project simulates generating metadata and synthetic datasets based on an or
 - [Installation](#installation)
 - [Usage](#usage)
 - [Project Structure](#project-structure)
+- [Data](#data)
+- [Metadata](#metadata)
 - [Smart Contracts](#smart-contracts)
 - [Contributing](#contributing)
 - [License](#license)
@@ -40,6 +42,15 @@ The project is organized into several Python scripts, each responsible for a dif
 - `model_training.py`: Contains functions for splitting a dataset into training and test sets, training and evaluating models, and validating models on a synthetic dataset.
 - `visualisations.py`: Contains functions for visualizing Gower's similarity and the performance metrics of the models.
 - `main.py`: The main script that ties everything together. It loads the original dataset, generates synthetic datasets, trains and evaluates models on the synthetic datasets, and validates the models on the most similar synthetic dataset.
+
+## Data
+
+The original dataset used for the simulation is the Heart Failure Prediction dataset, which can be downloaded from [Kaggle](https://www.kaggle.com/datasets/fedesoriano/heart-failure-prediction). The dataset should be placed in the `data` folder.
+
+## Metadata
+
+The project uses a metadata schema to generate metadata for the original and synthetic datasets. The metadata schema is stored as a JSON file, `metadata_schema.json`, in the `metadata` folder.
+
 
 ## Smart Contracts
 
