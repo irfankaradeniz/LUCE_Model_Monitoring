@@ -110,48 +110,7 @@ def main():
     # Plot the performance metrics across synthetic datasets
     metric_names = ["accuracy", "recall", "f1", "precision", "roc_auc"]
     plot_performance_metrics(performance_metrics_list, metric_names)
-
-    # # Connect to Ethereum network
-    # web3 = Web3(Web3.HTTPProvider('http://localhost:8545'))  # replace with my provider
-
-    # # Assuming having the contract ABI (interface) and contract addresses
-    # model_evaluation_abi = ''  # fill with ModelEvaluation contract ABI
-    # model_evaluation_address = ''  # fill with ModelEvaluation contract address
-
-    # model_result_nft_abi = ''  # fill with ModelResultNFT contract ABI
-    # model_result_nft_address = ''  # fill with ModelResultNFT contract address
-
-    # # Create contract objects
-    # model_evaluation_contract = web3.eth.contract(
-    #     address=model_evaluation_address,
-    #     abi=model_evaluation_abi,
-    # )
-
-    # model_result_nft_contract = web3.eth.contract(
-    #     address=model_result_nft_address,
-    #     abi=model_result_nft_abi,
-    # )
-
-    #     # Step 10: Add dataset, add model result, validate and mint NFT
-    # def validate_with_smart_contract(dataset, model_result):
-    #     # replace 'my_account' with my actual account
-    #     my_account = ''  # my ethereum account
-
-    #     # Call addDataset function
-    #     model_evaluation_contract.functions.addDataset(dataset['datasetId'], dataset['metadata']).transact({'from': my_account})
-
-    #     # Call addModelResult function
-    #     model_evaluation_contract.functions.addModelResult(model_result['modelId'], model_result['accuracy'], model_result['recall'], model_result['f1Score'], model_result['metadata']).transact({'from': my_account})
-
-    #     # Call validateModel function
-    #     is_valid = model_evaluation_contract.functions.validateModel(model_result['modelId'], dataset['datasetId']).call()
-
-    #     # If valid, mint NFT
-    #     if is_valid:
-    #         model_result_nft_contract.functions.mintModelResult(my_account, model_result['modelId']).transact({'from': my_account})
-
-    # validate_with_smart_contract(most_similar_dataset, validation_results)
-    # logging.info("Simulation completed")
+    logging.info("Simulation completed")
 
 
 if __name__ == "__main__":
